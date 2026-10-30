@@ -9,8 +9,10 @@ from uuid import UUID
 import rfc8785
 
 
-def _validate_metadata(value: Any) -> None:
+def validate_metadata(value: Any, *, depth: int = 0) -> None:
     """Keep JSON values reproducible after a PostgreSQL JSONB round trip."""
+    if depth > 32:
+        raise ValueError("Metadata nesting exceeds 32 levels")
     if isinstance(value, str):
         if "\x00" in value:
             raise ValueError("Metadata strings cannot contain NUL characters")
@@ -21,13 +23,13 @@ def _validate_metadata(value: Any) -> None:
             raise ValueError("Use strings for large or nonfinite metadata numbers")
     elif isinstance(value, list):
         for item in value:
-            _validate_metadata(item)
+            validate_metadata(item, depth=depth + 1)
     elif isinstance(value, dict):
         for key, item in value.items():
             if not isinstance(key, str):
                 raise ValueError("Metadata object keys must be strings")
-            _validate_metadata(key)
-            _validate_metadata(item)
+            validate_metadata(key, depth=depth + 1)
+            validate_metadata(item, depth=depth + 1)
     else:
         raise ValueError("Metadata must contain only JSON values")
 
@@ -51,7 +53,7 @@ def encode_registration(
         raise ValueError("Receipt time must include a timezone")
     if not isinstance(registration_metadata, dict):
         raise ValueError("Registration metadata must be a JSON object")
-    _validate_metadata(registration_metadata)
+    validate_metadata(registration_metadata)
     return rfc8785.dumps({
         "type": "rootproof.registration",
         "format_version": format_version,

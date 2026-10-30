@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.health import router
+from app.api.registrations import router as registrations_router
 from app.config import Settings
 from app.db.database import create_database_engine
 
@@ -22,6 +23,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     application = FastAPI(title="Rootproof", lifespan=lifespan)
     application.include_router(router)
+    application.include_router(registrations_router)
     return application
 
 

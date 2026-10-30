@@ -1,44 +1,17 @@
 """Exercise migrations and database integrity in disposable transaction schemas."""
 
-import os
-from collections.abc import Iterator
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import pytest
 from alembic import command
-from alembic.config import Config
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
-from sqlalchemy import Connection, inspect, insert, text
+from sqlalchemy import inspect, insert
 from sqlalchemy.exc import IntegrityError
 
-from app.config import Settings
-from app.db.database import create_database_engine
 from app.db.models import Base, Registration
 
 pytestmark = pytest.mark.integration
-
-
-@pytest.fixture
-def migrated_database() -> Iterator[tuple[Connection, Config]]:
-    if os.environ.get("ROOTPROOF_TEST_DATABASE") != "1":
-        pytest.skip("Set ROOTPROOF_TEST_DATABASE=1 to test local PostgreSQL")
-    engine = create_database_engine(Settings())
-    try:
-        with engine.connect() as connection:
-            transaction = connection.begin()
-            try:
-                schema = "test_" + uuid4().hex
-                connection.execute(text(f'CREATE SCHEMA "{schema}"'))
-                connection.execute(text(f'SET LOCAL search_path TO "{schema}"'))
-                config = Config("alembic.ini")
-                config.attributes["connection"] = connection
-                command.upgrade(config, "head")
-                yield connection, config
-            finally:
-                transaction.rollback()
-    finally:
-        engine.dispose()
 
 
 def test_registration_defaults_and_repeat_digest(migrated_database) -> None:

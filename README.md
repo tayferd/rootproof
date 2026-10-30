@@ -3,9 +3,9 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Completed milestone: **M-006 — local hashing and registration encoding**. The health endpoint
-checks PostgreSQL connectivity. Registration API endpoints and Merkle features
-are not implemented yet; see [PROJECT.md](PROJECT.md).
+Completed milestone: **M-007 — hash registration submission**. POST /registrations
+stores digests and selected metadata. Merkle batching and witnessing are not
+implemented yet; see [PROJECT.md](PROJECT.md).
 
 ## Development setup
 
@@ -86,7 +86,7 @@ Metadata must be a JSON object whose PostgreSQL text representation is at most
 8192 bytes. Do not use metadata to upload documents or confidential file contents.
 The database records a receipt time, not an independently witnessed timestamp.
 Local file hashing and versioned commitment encoding are implemented. Registration
-endpoints are a later milestone.
+submission is available through POST /registrations. Retrieval is a later milestone.
 
 ## Hash a file locally
 
@@ -103,6 +103,38 @@ Identical file bytes produce the same digest even after renaming. Re-saving a
 document may change its bytes even if it looks identical. See
 [the versioned encoding specification](docs/verification-format.md) for the
 separate format that will protect registration metadata in Merkle batches.
+
+## Register a hash
+
+Restart the local server after code changes (Ctrl+C, then the Uvicorn command
+above). In a second PowerShell window at the repository root:
+
+```powershell
+$digest = (Get-FileHash -LiteralPath README.md -Algorithm SHA256).Hash.ToLowerInvariant()
+$body = @{
+    digest = $digest
+    hash_algorithm = 'sha256'
+    registration_metadata = @{ document_name = 'README.md' }
+} | ConvertTo-Json -Depth 10
+Invoke-RestMethod -Uri 'http://127.0.0.1:8000/registrations' -Method Post -ContentType 'application/json' -Body $body
+```
+
+The API returns HTTP 201 with the database-generated id, digest, metadata,
+server receipt time, format version, and status `pending_batch`. This is a saved
+registration, not a Merkle proof or independently witnessed receipt. Keep the
+returned id. Repeating the request creates another registration; retries are not
+idempotent yet.
+
+Only application/json is accepted, with a 32768-byte body limit. Unknown fields,
+client-assigned receipt times, unsupported algorithms, invalid digests, duplicate
+JSON keys, and nonportable metadata are rejected. Metadata must also fit the
+database's 8192-byte JSONB text limit. Invalid inputs return 422; oversized bodies
+return 413, unsupported media types 415, and database failures 503 without exposing
+connection details. Selected metadata is echoed in the registration response.
+
+This prototype has no authentication. Keep it bound to 127.0.0.1 for local
+development and use non-sensitive sample metadata. Multi-user or public deployment
+requires authentication and authorization first. There is no document upload route.
 
 ## Start the local API
 

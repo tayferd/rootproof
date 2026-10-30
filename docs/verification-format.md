@@ -33,10 +33,12 @@ Use JSON strings, objects with string keys, arrays, booleans, null, and finite
 numbers. Integers and floats must have absolute value at most 9007199254740991.
 Represent larger values and precision-sensitive scientific measurements as strings.
 Strings must contain valid Unicode and no NUL characters, including object keys.
+Metadata nesting is limited to 32 levels below the root object.
 Unicode is preserved without normalization. This subset supports PostgreSQL JSONB
 round trips. Metadata size enforcement remains the registration schema's 8192-byte
 limit on PostgreSQL's JSONB text representation; the encoder does not replace that
-database check. Future submission validation must enforce these encoding rules.
+database check. Submission validation enforces the encoding rules and rejects
+duplicate JSON keys instead of silently choosing one value.
 
 An exact encoding test vector is in `tests/test_integrity.py`. Equivalent object
 key ordering and timezone offsets produce identical bytes. Changes to the digest,
