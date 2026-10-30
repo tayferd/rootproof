@@ -3,7 +3,7 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Completed milestone: **M-005 — registration database model**. The health endpoint
+Completed milestone: **M-006 — local hashing and registration encoding**. The health endpoint
 checks PostgreSQL connectivity. Registration API endpoints and Merkle features
 are not implemented yet; see [PROJECT.md](PROJECT.md).
 
@@ -85,7 +85,24 @@ algorithm, selected JSONB metadata, database receipt time, and format version.
 Metadata must be a JSON object whose PostgreSQL text representation is at most
 8192 bytes. Do not use metadata to upload documents or confidential file contents.
 The database records a receipt time, not an independently witnessed timestamp.
-File hashing, commitment encoding, and registration endpoints are later milestones.
+Local file hashing and versioned commitment encoding are implemented. Registration
+endpoints are a later milestone.
+
+## Hash a file locally
+
+```powershell
+.\.venv\Scripts\python.exe -m clients hash "C:\path\to\document.pdf"
+```
+
+This prints JSON containing the algorithm and digest. It does not read .env,
+connect to the API, upload a file, or store a registration. It works without a
+running server. Quote paths containing spaces. Missing files or detected changes
+during reading produce an error and nonzero exit status.
+
+Identical file bytes produce the same digest even after renaming. Re-saving a
+document may change its bytes even if it looks identical. See
+[the versioned encoding specification](docs/verification-format.md) for the
+separate format that will protect registration metadata in Merkle batches.
 
 ## Start the local API
 

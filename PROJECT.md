@@ -22,7 +22,8 @@ abstractions until a demonstrated requirement calls for them.
 | M-003 | Local PostgreSQL, SQLAlchemy 2, psycopg 3, Alembic; verify connection | Done |
 | M-004 | FastAPI app and GET /health verifying database connectivity | Done |
 | M-005 | Registration model and migration with database constraints | Done |
-| M-006–008 | Local file hashing, versioned commitment encoding, submission and comparison | Backlog |
+| M-006 | Local file hashing and versioned commitment encoding | Done |
+| M-007–008 | Registration submission and comparison | Backlog |
 | M-009–012 | Versioned deterministic Merkle trees, batches, proofs, verification, tamper tests | Backlog |
 | M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
 | M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
@@ -41,7 +42,12 @@ hex digest, algorithm, JSONB metadata object limited to 8192 bytes in PostgreSQL
 text representation, timezone-aware server receipt time, and format version 1.
 Repeated digests are allowed as separate registrations. Original files are not
 stored. Twenty tests pass, including isolated migration upgrade/downgrade tests,
-model/schema consistency, and invalid registration rejection. M-006 is next.
+model/schema consistency, and invalid registration rejection.
+M-006 adds an offline file hashing CLI and registration encoding using RFC 8785
+canonical JSON, documented in docs/verification-format.md. Forty-two tests pass,
+including known SHA-256 digests, chunked reads, detected file changes, an exact
+encoding vector, equivalent timezone/key ordering, and malformed input rejection.
+M-007 submission is next.
 No registration endpoints or witnessed receipts are implemented yet.
 
 ## Integrity and completion
