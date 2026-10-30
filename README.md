@@ -3,8 +3,9 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Current milestone: **M-003 — local PostgreSQL connectivity**. API endpoints and
-integrity features are not implemented yet; see [PROJECT.md](PROJECT.md).
+Completed milestone: **M-003 — local PostgreSQL connectivity**. Next is M-004,
+the FastAPI health endpoint. API endpoints and integrity features are not
+implemented yet; see [PROJECT.md](PROJECT.md).
 
 ## Development setup
 

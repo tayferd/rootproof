@@ -19,15 +19,18 @@ abstractions until a demonstrated requirement calls for them.
 | --- | --- | --- |
 | M-001 | Project definition and architecture | Done |
 | M-002 | Package, dependencies, configuration example, testing, documentation | Implemented and published |
-| M-003 | Local PostgreSQL, SQLAlchemy 2, psycopg 3, Alembic; verify connection | Doing; live database verification pending |
+| M-003 | Local PostgreSQL, SQLAlchemy 2, psycopg 3, Alembic; verify connection | Done |
 | M-004 | FastAPI app and GET /health verifying database connectivity | Backlog |
 | M-005–008 | Hash registrations, selected metadata, local file hashing, versioned commitment encoding | Backlog |
 | M-009–012 | Versioned deterministic Merkle trees, batches, proofs, verification, tamper tests | Backlog |
 | M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
 | M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
 
-M-003 is the current task. Docker is optional: use local PostgreSQL and a Python
-virtual environment. M-004 and later features are outside this milestone.
+M-003 is complete: the connection check, Alembic current and upgrade head, and all
+seven tests passed against local PostgreSQL 18.6. The live test was explicitly
+enabled. Local credentials remain in the ignored .env file.
+Docker is optional: use local PostgreSQL and a Python virtual environment.
+M-004 is next; no API endpoints are implemented yet.
 
 ## Integrity and completion
 
