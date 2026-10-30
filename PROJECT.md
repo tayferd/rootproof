@@ -1,8 +1,9 @@
 # Rootproof project
 
-Rootproof is a PostgreSQL-first API for cryptographically verifiable data.
-The eventual MVP lets an independent buyer pay through x402, receive a record
-and Merkle proof, verify against an externally committed root, and detect tampering.
+Rootproof registers locally calculated SHA-256 hashes and selected metadata.
+Original documents remain with the customer. The core MVP will issue portable
+receipts linking registrations to Merkle batches and independent witness evidence.
+A match establishes correspondence with committed bytes, not ownership or accuracy.
 
 ## Development approach
 
@@ -17,16 +18,16 @@ abstractions until a demonstrated requirement calls for them.
 | Milestone | Scope | Status |
 | --- | --- | --- |
 | M-001 | Project definition and architecture | Done |
-| M-002 | Package, dependencies, configuration example, testing, documentation | Testing / awaiting review |
-| M-003 | PostgreSQL in Docker Compose, SQLAlchemy 2, psycopg 3, Alembic; verify connection | Backlog |
+| M-002 | Package, dependencies, configuration example, testing, documentation | Implemented and published |
+| M-003 | Local PostgreSQL, SQLAlchemy 2, psycopg 3, Alembic; verify connection | Doing; live database verification pending |
 | M-004 | FastAPI app and GET /health verifying database connectivity | Backlog |
-| M-005–008 | Records, JSONB payloads, versioned canonicalization, SHA-256, record endpoints | Backlog |
+| M-005–008 | Hash registrations, selected metadata, local file hashing, versioned commitment encoding | Backlog |
 | M-009–012 | Versioned deterministic Merkle trees, batches, proofs, verification, tamper tests | Backlog |
-| M-013 | External root commitment; mechanism intentionally undecided | Backlog |
-| M-014–017 | x402, payment verification and records, paid data and proof delivery | Backlog |
+| M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
+| M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
 
-M-003 begins only after M-002 has been reviewed and accepted.
-No application server, database connection, or future feature is implemented in M-002.
+M-003 is the current task. Docker is optional: use local PostgreSQL and a Python
+virtual environment. M-004 and later features are outside this milestone.
 
 ## Integrity and completion
 
@@ -36,4 +37,23 @@ use environment variables for configuration. Database permissions should eventua
 follow least privilege. Production deployment is outside the current milestone.
 
 A task is done when relevant and existing automated tests pass, documentation is
-current, no secrets are committed, and changes are understandable and ready to commit.
+current, no secrets are committed, and changes are understandable and committed.
+Report local commits and confirmed GitHub publication separately.
+
+## Witness model and later integrations
+
+Multiple independent witnesses will attest to batch roots and observation times.
+Define the protocol, identities, independence, timing uncertainty, trust policy,
+confirmation threshold, and failure handling before M-013 implementation.
+Several machines under one operator do not automatically provide independent trust.
+Witnessing a root does not validate an earlier timestamp encoded in a registration.
+Missing or insufficient evidence must not produce successful witnessed verification.
+
+Private metadata requires access control before multi-user exposure. Independent
+verification must work with exported evidence without querying the Rootproof API.
+Collection tools and scientific integrations use the same backend. Sensor accuracy,
+source identity, and missing measurements require additional controls.
+
+x402 is planned for agents making occasional paid integrity requests, outside the
+core MVP. Original experiment data remains stored elsewhere. Later deployment will
+use AWS EC2 Linux, systemd, Uvicorn, Nginx, and HTTPS; tmux is for interactive work.

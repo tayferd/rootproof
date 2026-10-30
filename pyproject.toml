@@ -7,3 +7,4 @@ requires-python = ">=3.12"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--import-mode=importlib"
+markers = ["integration: requires a configured local PostgreSQL database"]
