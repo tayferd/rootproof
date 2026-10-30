@@ -3,9 +3,9 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Completed milestone: **M-004 — FastAPI walking skeleton**. The health endpoint
-checks PostgreSQL connectivity. Hash registration and integrity features are not
-implemented yet; see [PROJECT.md](PROJECT.md).
+Completed milestone: **M-005 — registration database model**. The health endpoint
+checks PostgreSQL connectivity. Registration API endpoints and Merkle features
+are not implemented yet; see [PROJECT.md](PROJECT.md).
 
 ## Development setup
 
@@ -76,9 +76,16 @@ On Linux use `.venv/bin/python`; opt in to the live test with
 `ROOTPROOF_TEST_DATABASE=1 .venv/bin/python -m pytest`.
 
 Without that opt-in the live test is skipped. Unit tests alone do not complete
-M-003. No migration revisions exist yet; registration models arrive in M-005.
-`alembic upgrade head` checks migration connectivity and may create Alembic's
-version table, but creates no registration tables.
+M-003. `alembic upgrade head` creates Alembic's version table and applies the
+registration schema migration. Database tests use temporary schemas inside
+rolled-back transactions; they do not erase development registrations.
+
+The registration table stores a UUID, a lowercase 64-character SHA-256 digest,
+algorithm, selected JSONB metadata, database receipt time, and format version.
+Metadata must be a JSON object whose PostgreSQL text representation is at most
+8192 bytes. Do not use metadata to upload documents or confidential file contents.
+The database records a receipt time, not an independently witnessed timestamp.
+File hashing, commitment encoding, and registration endpoints are later milestones.
 
 ## Start the local API
 

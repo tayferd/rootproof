@@ -21,7 +21,8 @@ abstractions until a demonstrated requirement calls for them.
 | M-002 | Package, dependencies, configuration example, testing, documentation | Implemented and published |
 | M-003 | Local PostgreSQL, SQLAlchemy 2, psycopg 3, Alembic; verify connection | Done |
 | M-004 | FastAPI app and GET /health verifying database connectivity | Done |
-| M-005–008 | Hash registrations, selected metadata, local file hashing, versioned commitment encoding | Backlog |
+| M-005 | Registration model and migration with database constraints | Done |
+| M-006–008 | Local file hashing, versioned commitment encoding, submission and comparison | Backlog |
 | M-009–012 | Versioned deterministic Merkle trees, batches, proofs, verification, tamper tests | Backlog |
 | M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
 | M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
@@ -33,7 +34,15 @@ Docker is optional: use local PostgreSQL and a Python virtual environment.
 M-004 is complete: GET /health returns 200 for a reachable database and 503 for
 database failures without exposing connection details. Ten tests passed, including
 the HTTP health check against live PostgreSQL. The database engine is created at
-application startup and disposed at shutdown. M-005 registration modeling is next.
+application startup and disposed at shutdown.
+
+M-005 adds the registrations table: database-generated UUID, lowercase SHA-256
+hex digest, algorithm, JSONB metadata object limited to 8192 bytes in PostgreSQL's
+text representation, timezone-aware server receipt time, and format version 1.
+Repeated digests are allowed as separate registrations. Original files are not
+stored. Twenty tests pass, including isolated migration upgrade/downgrade tests,
+model/schema consistency, and invalid registration rejection. M-006 is next.
+No registration endpoints or witnessed receipts are implemented yet.
 
 ## Integrity and completion
 
