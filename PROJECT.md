@@ -20,7 +20,7 @@ abstractions until a demonstrated requirement calls for them.
 | M-001 | Project definition and architecture | Done |
 | M-002 | Package, dependencies, configuration example, testing, documentation | Implemented and published |
 | M-003 | Local PostgreSQL, SQLAlchemy 2, psycopg 3, Alembic; verify connection | Done |
-| M-004 | FastAPI app and GET /health verifying database connectivity | Backlog |
+| M-004 | FastAPI app and GET /health verifying database connectivity | Done |
 | M-005–008 | Hash registrations, selected metadata, local file hashing, versioned commitment encoding | Backlog |
 | M-009–012 | Versioned deterministic Merkle trees, batches, proofs, verification, tamper tests | Backlog |
 | M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
@@ -30,7 +30,10 @@ M-003 is complete: the connection check, Alembic current and upgrade head, and a
 seven tests passed against local PostgreSQL 18.6. The live test was explicitly
 enabled. Local credentials remain in the ignored .env file.
 Docker is optional: use local PostgreSQL and a Python virtual environment.
-M-004 is next; no API endpoints are implemented yet.
+M-004 is complete: GET /health returns 200 for a reachable database and 503 for
+database failures without exposing connection details. Ten tests passed, including
+the HTTP health check against live PostgreSQL. The database engine is created at
+application startup and disposed at shutdown. M-005 registration modeling is next.
 
 ## Integrity and completion
 

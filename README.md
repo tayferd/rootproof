@@ -3,8 +3,8 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Completed milestone: **M-003 — local PostgreSQL connectivity**. Next is M-004,
-the FastAPI health endpoint. API endpoints and integrity features are not
+Completed milestone: **M-004 — FastAPI walking skeleton**. The health endpoint
+checks PostgreSQL connectivity. Hash registration and integrity features are not
 implemented yet; see [PROJECT.md](PROJECT.md).
 
 ## Development setup
@@ -34,7 +34,7 @@ baseline, not a locked production environment.
 
 The stack is FastAPI, Uvicorn, PostgreSQL, SQLAlchemy 2, psycopg 3, Alembic,
 Pydantic / pydantic-settings, and pytest. Install PostgreSQL locally; Docker is
-optional. There is no API server command yet.
+optional.
 
 Keep real configuration in the ignored `.env`; the committed `.env.example` contains
 the blank DATABASE_URL and its format. Environment variables override .env values.
@@ -79,3 +79,20 @@ Without that opt-in the live test is skipped. Unit tests alone do not complete
 M-003. No migration revisions exist yet; registration models arrive in M-005.
 `alembic upgrade head` checks migration connectivity and may create Alembic's
 version table, but creates no registration tables.
+
+## Start the local API
+
+From the repository root, with DATABASE_URL configured in .env:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+On Linux use `.venv/bin/python` with the same arguments. Keep the terminal open;
+press Ctrl+C to stop the server.
+
+Open http://127.0.0.1:8000/health. A reachable database produces HTTP 200 with
+`{"status":"ok","database":"ok"}`. A failed database check produces HTTP 503
+with `{"status":"unhealthy","database":"unavailable"}`. Missing or invalid
+configuration prevents startup. Interactive API documentation is at
+http://127.0.0.1:8000/docs. This command listens only on your local computer.
