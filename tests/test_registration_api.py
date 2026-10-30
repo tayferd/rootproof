@@ -1,7 +1,9 @@
 """Check actual persistence, portable responses, invalid requests, and failures."""
 
 from datetime import datetime
+from contextlib import nullcontext
 import json
+import sys
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -15,6 +17,8 @@ from app.config import Settings
 from app.db.models import Registration
 from app.main import create_app
 from integrity.commitments import encode_registration
+from integrity.hashing import hash_file
+from clients.__main__ import main as client_main
 
 
 @pytest.fixture
@@ -111,3 +115,47 @@ def test_database_failure_hides_details(client) -> None:
     response = client.post("/registrations", json={"digest": "a" * 64})
     assert response.status_code == 503
     assert response.json() == {"detail": "Registration could not be saved"}
+
+
+def test_retrieve_registration_and_unknown_identifier(database_client) -> None:
+    client, _ = database_client
+    created = client.post("/registrations", json={"digest": "a" * 64, "registration_metadata": {"document_name": "sample.txt"}})
+    result = created.json()
+    retrieved = client.get(f'/registrations/{result["id"]}')
+    assert retrieved.status_code == 200
+    assert retrieved.json() == result
+    missing = client.get("/registrations/00000000-0000-0000-0000-000000000000")
+    assert missing.status_code == 404
+    assert missing.json() == {"detail": "Registration not found"}
+
+
+def test_retrieve_invalid_id(client) -> None:
+    assert client.get("/registrations/not-a-uuid").status_code == 422
+
+
+def test_retrieve_database_failure_hides_details(client) -> None:
+    class FailedSession:
+        def get(self, *args):
+            raise OperationalError("private URL", {}, Exception("password"))
+
+    client.app.dependency_overrides[get_session] = lambda: FailedSession()
+    response = client.get("/registrations/00000000-0000-0000-0000-000000000001")
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Registration could not be retrieved"}
+
+
+def test_file_registration_retrieval_and_changed_file(database_client, tmp_path, monkeypatch, capsys) -> None:
+    client, _ = database_client
+    path = tmp_path / "experiment.txt"
+    path.write_bytes(b"measurement=42\n")
+    saved = client.post("/registrations", json={"digest": hash_file(path)})
+    assert saved.status_code == 201
+    identifier = saved.json()["id"]
+    # Exercise CLI requests through the real API and PostgreSQL-backed session.
+    monkeypatch.setattr("clients.__main__.httpx.Client", lambda **kwargs: nullcontext(client))
+    monkeypatch.setattr(sys, "argv", ["clients", "compare", str(path), identifier])
+    assert client_main() == 0
+    assert '"comparison": "match"' in capsys.readouterr().out
+    path.write_bytes(b"measurement=43\n")
+    assert client_main() == 1
+    assert '"comparison": "mismatch"' in capsys.readouterr().out

@@ -24,7 +24,7 @@ abstractions until a demonstrated requirement calls for them.
 | M-005 | Registration model and migration with database constraints | Done |
 | M-006 | Local file hashing and versioned commitment encoding | Done |
 | M-007 | Registration submission with validation and pending status | Done |
-| M-008 | Registration retrieval and local file comparison | Backlog |
+| M-008 | Registration retrieval and local file comparison | Done |
 | M-009–012 | Versioned deterministic Merkle trees, batches, proofs, verification, tamper tests | Backlog |
 | M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
 | M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
@@ -54,9 +54,14 @@ pending_batch status. It rejects duplicate keys and file upload requests. Databa
 failures return generic errors. Tests cover actual persistence and encoding after
 JSONB storage, repeated registrations, invalid requests, and metadata-size rollback.
 All 61 tests pass with live database integration enabled.
-No retrieval endpoints, Merkle batches, or witnessed receipts are implemented yet.
+M-008 adds GET /registrations/{id} and a local compare command. It distinguishes
+matches, mismatches, and errors without uploading file contents. The comparison
+trusts the database registration; no Merkle batches or witnessed receipts exist yet.
+Tests cover retrieval, missing/invalid identifiers, database failures, malformed
+responses, and a full local file registration-to-comparison flow against PostgreSQL.
+All 76 tests pass with live integration enabled.
 Keep this unauthenticated prototype local; multi-user exposure requires access
-control. M-008 is next.
+control. M-009 deterministic Merkle construction is next.
 
 ## Integrity and completion
 

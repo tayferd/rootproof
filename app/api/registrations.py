@@ -3,6 +3,7 @@
 from collections.abc import Iterator
 import json
 from typing import Annotated, Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -48,6 +49,24 @@ async def parse_registration(request: Request) -> RegistrationCreate:
 def get_session(request: Request) -> Iterator[Session]:
     with Session(request.app.state.database_engine) as session:
         yield session
+
+
+@router.get("/registrations/{registration_id}", response_model=RegistrationResponse)
+def retrieve(
+    registration_id: UUID,
+    session: Annotated[Session, Depends(get_session)],
+) -> RegistrationResponse:
+    try:
+        record = session.get(Registration, registration_id)
+        if record is None:
+            raise HTTPException(404, "Registration not found")
+        return RegistrationResponse(
+            id=record.id, digest=record.digest, hash_algorithm=record.hash_algorithm,
+            registration_metadata=record.registration_metadata,
+            received_at=record.received_at, format_version=record.format_version,
+        )
+    except SQLAlchemyError:
+        raise HTTPException(503, "Registration could not be retrieved") from None
 
 
 @router.post(

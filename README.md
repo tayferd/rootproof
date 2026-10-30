@@ -3,8 +3,8 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Completed milestone: **M-007 — hash registration submission**. POST /registrations
-stores digests and selected metadata. Merkle batching and witnessing are not
+Completed milestone: **M-008 — registration retrieval and file comparison**.
+The API stores and retrieves digests and selected metadata. Merkle batching and witnessing are not
 implemented yet; see [PROJECT.md](PROJECT.md).
 
 ## Development setup
@@ -86,7 +86,8 @@ Metadata must be a JSON object whose PostgreSQL text representation is at most
 8192 bytes. Do not use metadata to upload documents or confidential file contents.
 The database records a receipt time, not an independently witnessed timestamp.
 Local file hashing and versioned commitment encoding are implemented. Registration
-submission is available through POST /registrations. Retrieval is a later milestone.
+submission is available through POST /registrations; retrieve by ID using
+GET /registrations/{id}.
 
 ## Hash a file locally
 
@@ -135,6 +136,33 @@ connection details. Selected metadata is echoed in the registration response.
 This prototype has no authentication. Keep it bound to 127.0.0.1 for local
 development and use non-sensitive sample metadata. Multi-user or public deployment
 requires authentication and authorization first. There is no document upload route.
+
+## Compare a file with a saved registration
+
+Restart the server after code changes. Substitute the ID returned when you
+registered the file:
+
+```powershell
+.\.venv\Scripts\python.exe -m clients compare "C:\path\to\file.txt" YOUR_REGISTRATION_ID
+```
+
+The command hashes the file locally and makes a GET request for the registration;
+it sends no file contents or locally calculated digest. It reports `match` or
+`mismatch` with basis `database_registration_only`. This trusts the API/database
+registration; it is not independent Merkle or witnessed verification.
+
+Exit codes: 0 for a match, 1 for a mismatch, 2 for an error such as a missing file,
+unknown registration, unavailable API, or malformed response. The API defaults to
+http://127.0.0.1:8000; override with `--api-url` when needed.
+
+GET /registrations/{id} returns the registration with HTTP 200, or 404 for an
+unknown UUID, 422 for an invalid UUID, and 503 for database failures. It has no
+ownership checks yet, so the local-only development restriction still applies.
+
+Use a stable sample file for demonstrations. README.md changes as we document
+milestones, so its current hash may differ from one registered earlier. A mismatch
+in that situation is expected. Preserve the original file if you want to compare
+it later; Rootproof does not store or restore its contents.
 
 ## Start the local API
 
