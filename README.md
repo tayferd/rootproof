@@ -3,9 +3,9 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Completed milestone: **M-008 — registration retrieval and file comparison**.
-The API stores and retrieves digests and selected metadata. Merkle batching and witnessing are not
-implemented yet; see [PROJECT.md](PROJECT.md).
+Completed milestone: **M-009 — deterministic Merkle root calculation**.
+The API stores and retrieves digests and selected metadata. Merkle batch storage,
+proofs, and witnessing are not implemented yet; see [PROJECT.md](PROJECT.md).
 
 ## Development setup
 
@@ -163,6 +163,17 @@ Use a stable sample file for demonstrations. README.md changes as we document
 milestones, so its current hash may differ from one registered earlier. A mismatch
 in that situation is expected. Preserve the original file if you want to compare
 it later; Rootproof does not store or restore its contents.
+
+## Merkle construction
+
+The shared `integrity.merkle` module calculates roots from ordered byte entries
+using the SHA-256 tree construction in RFC 9162. Application entries are complete
+canonical registration encodings, so metadata and receipt times are protected
+alongside file digests. See [the versioned tree specification](docs/merkle-format.md).
+
+M-009 provides the root calculator only. It does not automatically batch stored
+registrations, change their pending status, generate proofs, or contact witnesses.
+There is no new server command or database migration for this milestone.
 
 ## Start the local API
 

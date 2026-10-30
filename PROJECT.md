@@ -25,7 +25,8 @@ abstractions until a demonstrated requirement calls for them.
 | M-006 | Local file hashing and versioned commitment encoding | Done |
 | M-007 | Registration submission with validation and pending status | Done |
 | M-008 | Registration retrieval and local file comparison | Done |
-| M-009–012 | Versioned deterministic Merkle trees, batches, proofs, verification, tamper tests | Backlog |
+| M-009 | Versioned deterministic Merkle root calculation | Done |
+| M-010–012 | Persisted batches, inclusion proofs, independent verification | Backlog |
 | M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
 | M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
 
@@ -61,7 +62,13 @@ Tests cover retrieval, missing/invalid identifiers, database failures, malformed
 responses, and a full local file registration-to-comparison flow against PostgreSQL.
 All 76 tests pass with live integration enabled.
 Keep this unauthenticated prototype local; multi-user exposure requires access
-control. M-009 deterministic Merkle construction is next.
+control.
+M-009 implements the SHA-256 Merkle construction from RFC 9162 with version
+rootproof.merkle.rfc9162.sha256.v1. Root calculation preserves entry order,
+distinguishes leaves from nodes, and specifies empty/single/odd-sized trees.
+All 114 tests pass, including fixed cross-runtime vectors and a separate recursive
+reference. See docs/merkle-format.md. Batch persistence is M-010, next; existing
+registrations remain pending_batch. No inclusion proofs or witnessing exist yet.
 
 ## Integrity and completion
 

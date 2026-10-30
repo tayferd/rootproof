@@ -47,6 +47,7 @@ identifier, receipt time, or metadata change the encoded bytes.
 The implementation uses the [rfc8785 package](https://github.com/trailofbits/rfc8785.py).
 It has no dependency on the API, PostgreSQL, or local credentials.
 
-This encoding is not a Merkle proof or witness receipt. Leaf hashing, node hashing,
-batch ordering, and proof formats will be defined in M-009 through M-012. External
-witness evidence arrives in M-013. No independent timing claim exists yet.
+This encoding is not a Merkle proof or witness receipt. The implemented leaf and
+node hashing rules are documented in [merkle-format.md](merkle-format.md).
+Persisted batch positions and proof formats follow in M-010 through M-012.
+External witness evidence arrives in M-013. No independent timing claim exists yet.
