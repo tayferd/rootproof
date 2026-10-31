@@ -3,9 +3,9 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Completed milestone: **M-009 — deterministic Merkle root calculation**.
-The API stores and retrieves digests and selected metadata. Merkle batch storage,
-proofs, and witnessing are not implemented yet; see [PROJECT.md](PROJECT.md).
+Completed milestone: **M-010 — persisted Merkle batches**.
+The API stores and retrieves hash registrations and reports batch membership.
+Inclusion proofs and witnessing are not implemented yet; see [PROJECT.md](PROJECT.md).
 
 ## Development setup
 
@@ -171,9 +171,30 @@ using the SHA-256 tree construction in RFC 9162. Application entries are complet
 canonical registration encodings, so metadata and receipt times are protected
 alongside file digests. See [the versioned tree specification](docs/merkle-format.md).
 
-M-009 provides the root calculator only. It does not automatically batch stored
-registrations, change their pending status, generate proofs, or contact witnesses.
-There is no new server command or database migration for this milestone.
+## Seal a batch locally
+
+Apply the database migration before running updated API code, then restart Uvicorn:
+
+```powershell
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\.venv\Scripts\python.exe -m app.db.batch --limit 1000
+```
+
+The operator command seals up to 1000 pending registrations in one transaction.
+It returns the batch ID, root, size, construction version, sealed time, and status
+`sealed_pending_witnesses`. With no pending registrations it reports
+`no_pending_registrations` without creating an empty batch.
+
+GET /registrations/{id} now includes batch_id and batch_position (null before
+sealing), and reports sealed_pending_witnesses after inclusion. File comparison
+still checks only the stored digest; it does not verify batch inclusion yet.
+
+The batch root is reproducible from saved canonical entries in position order.
+Database constraints and triggers prevent ordinary changes to sealed data.
+Privileged database administrators can bypass those controls; independent
+witnessing has not been implemented. See the tree specification for trust limits
+and transaction behavior. Never run migration downgrades on evidence-bearing data
+as routine maintenance: they intentionally remove batch data and protections.
 
 ## Start the local API
 

@@ -19,6 +19,7 @@ from app.main import create_app
 from integrity.commitments import encode_registration
 from integrity.hashing import hash_file
 from clients.__main__ import main as client_main
+from app.services.batching import seal_batch
 
 
 @pytest.fixture
@@ -159,3 +160,14 @@ def test_file_registration_retrieval_and_changed_file(database_client, tmp_path,
     path.write_bytes(b"measurement=43\n")
     assert client_main() == 1
     assert '"comparison": "mismatch"' in capsys.readouterr().out
+
+
+def test_registration_reports_sealed_batch_membership(database_client) -> None:
+    client, connection = database_client
+    saved = client.post("/registrations", json={"digest": "a" * 64}).json()
+    with Session(bind=connection, join_transaction_mode="create_savepoint") as session:
+        batch = seal_batch(session)
+    result = client.get(f'/registrations/{saved["id"]}').json()
+    assert result["status"] == "sealed_pending_witnesses"
+    assert result["batch_id"] == str(batch.id)
+    assert result["batch_position"] == 0

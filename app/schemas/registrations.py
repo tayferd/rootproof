@@ -33,4 +33,6 @@ class RegistrationResponse(BaseModel):
     registration_metadata: dict[str, Any]
     received_at: datetime
     format_version: Literal[1]
-    status: Literal["pending_batch"] = "pending_batch"
+    status: Literal["pending_batch", "sealed_pending_witnesses"] = "pending_batch"
+    batch_id: UUID | None = None
+    batch_position: int | None = None

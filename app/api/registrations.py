@@ -9,7 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.db.models import Registration
+from sqlalchemy import select
+from app.db.models import BatchEntry, Registration
 from app.schemas.registrations import RegistrationCreate, RegistrationResponse
 from integrity.commitments import encode_registration
 
@@ -60,10 +61,14 @@ def retrieve(
         record = session.get(Registration, registration_id)
         if record is None:
             raise HTTPException(404, "Registration not found")
+        entry = session.scalar(select(BatchEntry).where(BatchEntry.registration_id == registration_id))
         return RegistrationResponse(
             id=record.id, digest=record.digest, hash_algorithm=record.hash_algorithm,
             registration_metadata=record.registration_metadata,
             received_at=record.received_at, format_version=record.format_version,
+            status="sealed_pending_witnesses" if entry else "pending_batch",
+            batch_id=entry.batch_id if entry else None,
+            batch_position=entry.position if entry else None,
         )
     except SQLAlchemyError:
         raise HTTPException(503, "Registration could not be retrieved") from None

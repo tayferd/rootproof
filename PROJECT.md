@@ -26,7 +26,8 @@ abstractions until a demonstrated requirement calls for them.
 | M-007 | Registration submission with validation and pending status | Done |
 | M-008 | Registration retrieval and local file comparison | Done |
 | M-009 | Versioned deterministic Merkle root calculation | Done |
-| M-010–012 | Persisted batches, inclusion proofs, independent verification | Backlog |
+| M-010 | Persisted atomic Merkle batches with immutable ordered entries | Done |
+| M-011–012 | Inclusion proofs and independent verification | Backlog |
 | M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
 | M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
 
@@ -66,9 +67,15 @@ control.
 M-009 implements the SHA-256 Merkle construction from RFC 9162 with version
 rootproof.merkle.rfc9162.sha256.v1. Root calculation preserves entry order,
 distinguishes leaves from nodes, and specifies empty/single/odd-sized trees.
-All 114 tests pass, including fixed cross-runtime vectors and a separate recursive
-reference. See docs/merkle-format.md. Batch persistence is M-010, next; existing
-registrations remain pending_batch. No inclusion proofs or witnessing exist yet.
+All 114 tests passed, including fixed cross-runtime vectors and a separate recursive
+reference. See docs/merkle-format.md.
+M-010 adds an operator sealing command, ordered canonical snapshots, persisted roots,
+transactional completeness checks, and ordinary mutation protection. Concurrent
+sealers commit disjoint batches. Registration retrieval exposes batch membership
+and sealed_pending_witnesses status. The first development batch contains two
+registrations. Inclusion proofs and external witnessing are not implemented yet.
+The 132-test suite passed, followed by the added sealed-status API test (133 total).
+M-011 inclusion proofs and receipts is next.
 
 ## Integrity and completion
 
