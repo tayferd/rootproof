@@ -27,7 +27,8 @@ abstractions until a demonstrated requirement calls for them.
 | M-008 | Registration retrieval and local file comparison | Done |
 | M-009 | Versioned deterministic Merkle root calculation | Done |
 | M-010 | Persisted atomic Merkle batches with immutable ordered entries | Done |
-| M-011–012 | Inclusion proofs and independent verification | Backlog |
+| M-011 | Inclusion proof generation and exportable receipts | Done |
+| M-012 | Offline file-and-receipt verification | Backlog |
 | M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
 | M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
 
@@ -75,7 +76,12 @@ sealers commit disjoint batches. Registration retrieval exposes batch membership
 and sealed_pending_witnesses status. The first development batch contains two
 registrations. Inclusion proofs and external witnessing are not implemented yet.
 The 132-test suite passed, followed by the added sealed-status API test (133 total).
-M-011 inclusion proofs and receipts is next.
+M-011 adds RFC inclusion paths and GET /registrations/{id}/receipt. Before export,
+the service checks the target snapshot, batch positions/count, and reproduced root.
+Receipts contain only the target registration and sibling hashes, with an explicit
+sealed_pending_witnesses status. All 168 tests pass, including independently
+structured proof checks and inconsistent-evidence rejection. No database migration
+is required. M-012 offline file-and-receipt verification is next.
 
 ## Integrity and completion
 

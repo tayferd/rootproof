@@ -3,9 +3,9 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Completed milestone: **M-010 — persisted Merkle batches**.
-The API stores and retrieves hash registrations and reports batch membership.
-Inclusion proofs and witnessing are not implemented yet; see [PROJECT.md](PROJECT.md).
+Completed milestone: **M-011 — inclusion proofs and exportable receipts**.
+The API stores hash registrations, seals batches, and exports inclusion receipts.
+Offline verification and witnessing follow next; see [PROJECT.md](PROJECT.md).
 
 ## Development setup
 
@@ -195,6 +195,26 @@ Privileged database administrators can bypass those controls; independent
 witnessing has not been implemented. See the tree specification for trust limits
 and transaction behavior. Never run migration downgrades on evidence-bearing data
 as routine maintenance: they intentionally remove batch data and protections.
+
+## Export an inclusion receipt
+
+Restart Uvicorn after updating the code. For a registration that has been sealed,
+open `/registrations/YOUR_REGISTRATION_ID/receipt` or download it from PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force '.local\receipts' | Out-Null
+Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8000/registrations/YOUR_REGISTRATION_ID/receipt' -OutFile '.local\receipts\receipt.json'
+```
+
+Replace YOUR_REGISTRATION_ID with the actual UUID. The response contains the
+protected registration, batch root and size, position, sibling hashes, and version
+identifiers. It explicitly reports sealed_pending_witnesses. It is not a trusted
+timestamp or externally witnessed receipt. Unbatched registrations return 409.
+
+Receipt export does not require a database migration. The .local directory is
+ignored by Git; exported receipts can contain private metadata. See
+[the receipt format](docs/receipt-format.md) for details and trust boundaries.
+The offline verifier arrives in M-012; clients compare remains database-only.
 
 ## Start the local API
 

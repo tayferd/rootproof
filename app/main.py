@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from app.api.health import router
 from app.api.registrations import router as registrations_router
+from app.api.receipts import router as receipts_router
 from app.config import Settings
 from app.db.database import create_database_engine
 
@@ -24,6 +25,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application = FastAPI(title="Rootproof", lifespan=lifespan)
     application.include_router(router)
     application.include_router(registrations_router)
+    application.include_router(receipts_router)
     return application
 
 

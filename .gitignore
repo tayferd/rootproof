@@ -10,6 +10,7 @@ service-account*.json
 
 # Python environments, generated files, and tool caches.
 .venv/
+.local/
 venv/
 __pycache__/
 *.py[cod]

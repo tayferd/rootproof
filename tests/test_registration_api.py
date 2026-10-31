@@ -6,39 +6,17 @@ import json
 import sys
 from uuid import UUID
 
-from fastapi.testclient import TestClient
 import pytest
 from sqlalchemy import func, select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from app.api.registrations import get_session
-from app.config import Settings
 from app.db.models import Registration
-from app.main import create_app
 from integrity.commitments import encode_registration
 from integrity.hashing import hash_file
 from clients.__main__ import main as client_main
 from app.services.batching import seal_batch
-
-
-@pytest.fixture
-def client():
-    settings = Settings(_env_file=None, database_url="postgresql+psycopg://localhost/test")
-    with TestClient(create_app(settings)) as value:
-        yield value
-
-
-@pytest.fixture
-def database_client(migrated_database, client):
-    connection, _ = migrated_database
-
-    def test_session():
-        with Session(bind=connection, join_transaction_mode="create_savepoint") as session:
-            yield session
-
-    client.app.dependency_overrides[get_session] = test_session
-    yield client, connection
 
 
 def test_registration_is_persisted_and_encodable(database_client) -> None:

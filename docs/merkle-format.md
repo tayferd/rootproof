@@ -81,8 +81,10 @@ witnessing remains required. Migration downgrades intentionally remove protectio
 and batch data, and must not be used as routine operations on evidence-bearing data.
 
 Retrieval reports `sealed_pending_witnesses` plus batch ID and position after sealing.
-There are no witness attestations or inclusion-proof receipts yet.
+Inclusion-proof receipts are available through the M-011 export endpoint. There
+are no witness attestations yet.
 
-Inclusion proof generation, receipt formats, and independent verification follow
-in M-011 and M-012. External witnessing follows in M-013.
+See [receipt-format.md](receipt-format.md) for the inclusion path and receipt
+format implemented in M-011. Offline verification follows in M-012 and external
+witnessing follows in M-013.
 A root calculated locally is not evidence of external observation or a trusted time.
