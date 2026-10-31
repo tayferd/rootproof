@@ -1,0 +1,5 @@
+# These exact bytes are pinned or used as cryptographic protocol fixtures.
+trust/freetsa/*.crt -text
+tests/fixtures/freetsa-public-demo/*.tsq -text
+tests/fixtures/freetsa-public-demo/*.tsr -text
+tests/fixtures/timestamp-demo.txt -text

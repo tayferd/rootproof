@@ -7,6 +7,10 @@ Completed milestone: **M-012 — offline file-and-receipt verification**.
 The API stores hash registrations, seals batches, and exports inclusion receipts.
 Offline verification works; external witnessing is next. See [PROJECT.md](PROJECT.md).
 
+M-013 is in progress: a separate RFC 3161 single-authority experiment has passed
+against FreeTSA using synthetic public test data. It is not a production timestamp
+or multi-witness integration. See [the decision and prototype](docs/timestamping-decision.md).
+
 ## Development setup
 
 Install Python **3.12 or newer** and Git. From the repository root, create a virtual

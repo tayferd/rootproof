@@ -29,7 +29,7 @@ abstractions until a demonstrated requirement calls for them.
 | M-010 | Persisted atomic Merkle batches with immutable ordered entries | Done |
 | M-011 | Inclusion proof generation and exportable receipts | Done |
 | M-012 | Offline file-and-receipt verification | Done |
-| M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
+| M-013 | Independent witnessed root commitments | Doing: single-authority protocol experiment passed |
 | M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
 
 M-003 is complete: the connection check, Alembic current and upgrade head, and all
@@ -91,6 +91,15 @@ independent witnessing remains the outstanding core MVP milestone.
 All 212 tests pass. A real development receipt also verified against original
 README bytes recovered from Git history; a changed copy failed without contacting
 the API or PostgreSQL. Local demonstration files remain in ignored .local storage.
+
+M-013 has a separate FreeTSA RFC 3161 prototype with pinned experimental CA/signer
+trust and a real signed synthetic fixture. It verifies signature, chain, nonce,
+and message imprint, while explicitly reporting no quorum and no revocation or
+timing-accuracy policy approval. No user batch has been submitted externally.
+The core receipt status and verifier are unchanged. See docs/timestamping-decision.md
+for provider findings and remaining multi-operator/persistence/policy work.
+All 230 tests pass, including offline verification of the real signed public
+fixture and rejection of wrong roots, modified signatures, imprints, and nonces.
 
 ## Integrity and completion
 

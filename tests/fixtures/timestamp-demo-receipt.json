@@ -1,0 +1,27 @@
+{
+  "receipt_version": "rootproof.receipt.v1",
+  "registration": {
+    "type": "rootproof.registration",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "digest": "03948de2a93bc60e0a6ba6a9d6369f8cc39e9cec1e6d1ee0e97352d27d314777",
+    "hash_algorithm": "sha256",
+    "received_at": "2026-01-01T00:00:00Z",
+    "registration_metadata": {
+      "purpose": "Public synthetic protocol test; times are invented"
+    },
+    "format_version": 1
+  },
+  "batch": {
+    "id": "00000000-0000-0000-0000-000000000002",
+    "root": "1710f7502e1930129819faa71a9b1df8e158cb2679955d29c29a932822ab2cdd",
+    "tree_size": 1,
+    "merkle_version": "rootproof.merkle.rfc9162.sha256.v1",
+    "sealed_at": "2026-01-01T00:01:00Z"
+  },
+  "inclusion_proof": {
+    "version": "rootproof.inclusion.rfc9162.sha256.v1",
+    "leaf_index": 0,
+    "audit_path": []
+  },
+  "status": "sealed_pending_witnesses"
+}
