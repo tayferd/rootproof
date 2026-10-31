@@ -1,6 +1,7 @@
 """Hash local files and compare them with database registrations."""
 
 import argparse
+from dataclasses import asdict
 import json
 from pathlib import Path
 import sys
@@ -10,6 +11,7 @@ import httpx
 
 from clients.registrations import fetch_digest
 from integrity.hashing import hash_file
+from integrity.verification import MAX_RECEIPT_BYTES, verify_receipt
 
 
 def main() -> int:
@@ -21,12 +23,25 @@ def main() -> int:
     comparison.add_argument("path", type=Path)
     comparison.add_argument("registration_id", type=UUID)
     comparison.add_argument("--api-url", default="http://127.0.0.1:8000")
+    verification = commands.add_parser("verify", help="Verify a local file and receipt offline; no witness confirmation yet")
+    verification.add_argument("path", type=Path)
+    verification.add_argument("receipt", type=Path)
     args = parser.parse_args()
     try:
         digest = hash_file(args.path)
     except (OSError, ValueError) as error:
         print(f"Hashing failed: {error}", file=sys.stderr)
         return 1 if args.command == "hash" else 2
+    if args.command == "verify":
+        try:
+            with args.receipt.open("rb") as source:
+                receipt_bytes = source.read(MAX_RECEIPT_BYTES + 1)
+            result = verify_receipt(digest, receipt_bytes)
+        except (OSError, ValueError) as error:
+            print(f"Verification failed: {error}", file=sys.stderr)
+            return 2
+        print(json.dumps(asdict(result)))
+        return 0 if result.status == "valid_unwitnessed" else 1
     if args.command == "compare":
         try:
             with httpx.Client(timeout=5, trust_env=False, follow_redirects=False) as client:

@@ -28,7 +28,7 @@ abstractions until a demonstrated requirement calls for them.
 | M-009 | Versioned deterministic Merkle root calculation | Done |
 | M-010 | Persisted atomic Merkle batches with immutable ordered entries | Done |
 | M-011 | Inclusion proof generation and exportable receipts | Done |
-| M-012 | Offline file-and-receipt verification | Backlog |
+| M-012 | Offline file-and-receipt verification | Done |
 | M-013 | Independent witnessed root commitments; mechanism intentionally undecided | Backlog |
 | M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
 
@@ -81,7 +81,16 @@ the service checks the target snapshot, batch positions/count, and reproduced ro
 Receipts contain only the target registration and sibling hashes, with an explicit
 sealed_pending_witnesses status. All 168 tests pass, including independently
 structured proof checks and inconsistent-evidence rejection. No database migration
-is required. M-012 offline file-and-receipt verification is next.
+is required.
+M-012 adds clients verify: exact file hashing, strict receipt parsing, canonical
+registration reconstruction, and inclusion verification without API/database access.
+It distinguishes file/proof mismatch from malformed input, rejects unsupported
+versions, and reports valid_unwitnessed with witness_status not_verified. A receipt
+root is not authenticated merely because its inclusion path verifies. M-013
+independent witnessing remains the outstanding core MVP milestone.
+All 212 tests pass. A real development receipt also verified against original
+README bytes recovered from Git history; a changed copy failed without contacting
+the API or PostgreSQL. Local demonstration files remain in ignored .local storage.
 
 ## Integrity and completion
 

@@ -55,11 +55,40 @@ checks contiguous positions and count, and recalculates the stored root before
 issuing a receipt. A privileged attacker who rewrites the entire database can
 still produce a new consistent receipt. External witnessing remains M-013.
 
-M-011 exports proofs. The supported offline file-and-receipt verification command
-will be added in M-012. Tests already check paths with separately implemented
-verification algorithms. The current `clients compare` command still uses the API
-registration and does not verify inclusion.
+M-011 exports proofs; M-012 adds offline verification:
 
-No database migration is needed for M-011. Local exported examples belong in the
+```powershell
+.\.venv\Scripts\python.exe -m clients verify "C:\path\to\file" "C:\path\to\receipt.json"
+```
+
+This command reads only the local file and receipt. It does not load .env, access
+PostgreSQL, or contact an API or witness. It recalculates the file digest,
+reconstructs the canonical registration, and verifies the RFC inclusion path using
+the supplied index, size, and root. Tests include independently computed fixed
+vectors as well as real API receipt exports.
+
+Supported receipts must contain exactly the documented version 1 fields. Reject
+duplicate JSON keys, unknown fields/versions, nonfinite metadata numbers, invalid
+digests and timestamps, and boolean/coerced indexes or sizes. Timestamp inputs may
+have up to six fractional digits; greater precision is rejected rather than
+silently truncated. Receipt input is limited to 65536 bytes. No trailing proof
+nodes or truncated paths are accepted as valid inclusion evidence.
+
+Output separately reports `file_matches`, `inclusion_valid`, and `witness_status`.
+Success is labelled `valid_unwitnessed` with basis `supplied_receipt_root` and
+witness_status `not_verified`. File or proof mismatches produce `failed`.
+Malformed/unsupported input is an error, not a valid or witnessed result.
+
+Exit codes: 0 for valid unwitnessed consistency, 1 for failed file/proof checks,
+and 2 for errors such as unreadable files or malformed receipts. A zero exit code
+does not establish independent root publication, receipt time, or witness agreement.
+An attacker replacing the registration, path, and root consistently can still
+produce a valid_unwitnessed result. M-013 must authenticate the root and associated
+witness policy/time evidence separately. Batch IDs and sealed times remain
+descriptive even after an otherwise valid inclusion check.
+
+The `clients compare` command remains a separate database-registration comparison.
+
+No database migration is needed for M-011 or M-012. Local exported examples belong in the
 ignored `.local/receipts/` directory, outside Git. Preserve receipts alongside the
 corresponding original file in your own storage; neither is recoverable from a hash.

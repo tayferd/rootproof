@@ -3,9 +3,9 @@ Register file hashes and selected metadata without uploading original documents.
 Portable Merkle receipts and independent witness evidence are planned; x402 agent
 payments will follow later.
 
-Completed milestone: **M-011 — inclusion proofs and exportable receipts**.
+Completed milestone: **M-012 — offline file-and-receipt verification**.
 The API stores hash registrations, seals batches, and exports inclusion receipts.
-Offline verification and witnessing follow next; see [PROJECT.md](PROJECT.md).
+Offline verification works; external witnessing is next. See [PROJECT.md](PROJECT.md).
 
 ## Development setup
 
@@ -214,7 +214,28 @@ timestamp or externally witnessed receipt. Unbatched registrations return 409.
 Receipt export does not require a database migration. The .local directory is
 ignored by Git; exported receipts can contain private metadata. See
 [the receipt format](docs/receipt-format.md) for details and trust boundaries.
-The offline verifier arrives in M-012; clients compare remains database-only.
+The offline verifier is available below; clients compare remains database-only.
+
+## Verify a receipt offline
+
+```powershell
+.\.venv\Scripts\python.exe -m clients verify "C:\path\to\file.txt" ".local\receipts\receipt.json"
+```
+
+The command hashes the exact file bytes and checks the protected registration and
+inclusion path against the root in the receipt. It does not load database settings
+or make network requests. The API and PostgreSQL can be unavailable.
+
+A passing result has status `valid_unwitnessed`, file_matches and inclusion_valid
+both true, basis `supplied_receipt_root`, and witness_status `not_verified`.
+This proves consistency with the supplied root, not its historical publication or
+an independently trustworthy timestamp. Replacing an entire receipt consistently
+is still possible without external witness evidence.
+
+Exit codes: 0 for valid unwitnessed consistency, 1 for a file/proof mismatch, and
+2 for malformed input or processing errors. See the receipt format for strict
+validation rules and trust boundaries. No database migration or server restart is
+needed to use the offline command.
 
 ## Start the local API
 
