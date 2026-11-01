@@ -3,6 +3,7 @@
 import argparse
 from dataclasses import asdict
 import json
+from uuid import UUID
 
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
@@ -16,6 +17,7 @@ from app.services.batching import seal_batch
 def main() -> int:
     parser = argparse.ArgumentParser(description="Seal pending registrations locally; no external witnessing")
     parser.add_argument("--limit", type=int, default=1000, choices=range(1, 1001), metavar="1..1000")
+    parser.add_argument("--registration-id", type=UUID, help="Seal only this registration, leaving others pending")
     args = parser.parse_args()
     try:
         settings = Settings()
@@ -25,7 +27,7 @@ def main() -> int:
     engine = create_database_engine(settings)
     try:
         with Session(engine) as session:
-            batch = seal_batch(session, limit=args.limit)
+            batch = seal_batch(session, limit=args.limit, registration_id=args.registration_id)
         output = {"status": "no_pending_registrations"} if batch is None else {
             **asdict(batch), "status": "sealed_pending_witnesses",
         }

@@ -65,6 +65,10 @@ transaction advisory lock serializes sealers. Selected registration rows are loc
 while encoding, and the batch and all entries commit together. Failed transactions
 leave registrations unassigned. Registrations arriving after selection wait for a
 later batch. Repeating the command seals remaining pending records or reports none.
+For an explicit single-registration operation, use
+`python -m app.db.batch --registration-id UUID`. This selects only that pending
+registration and leaves all other registrations unassigned. It creates no batch
+when that registration is missing or already sealed.
 
 PostgreSQL stores batch UUID, root, construction identifier, tree size, sealed time,
 and ordered entries with registration IDs and canonical byte snapshots. A deferred

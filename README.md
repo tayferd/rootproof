@@ -30,6 +30,17 @@ Save registration details while pending; these are not inclusion proofs. Once th
 operator seals a batch, refresh and save an inclusion receipt. Batch sealing
 remains the separate `python -m app.db.batch` operator command.
 
+The offline checker needs the JSON produced by **Save inclusion receipt**, not
+**Save registration details**. If an unbatched registration needs an individual
+receipt, the operator can seal just that ID without touching other pending records:
+
+```powershell
+.\.venv\Scripts\python.exe -m app.db.batch --registration-id YOUR_REGISTRATION_ID
+```
+
+Then refresh the registration and save its inclusion receipt. The desktop explains
+this distinction when registration details are mistakenly selected for verification.
+
 The second tab checks a file and saved inclusion receipt offline. It displays
 file and proof matches separately and explicitly says independent timestamp
 evidence is not verified. The separate FreeTSA experiment is not integrated into

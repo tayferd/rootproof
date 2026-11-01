@@ -21,15 +21,17 @@ class SealedBatch:
     sealed_at: datetime
 
 
-def seal_batch(session: Session, *, limit: int = 1000) -> SealedBatch | None:
+def seal_batch(session: Session, *, limit: int = 1000, registration_id: UUID | None = None) -> SealedBatch | None:
     if type(limit) is not int or not 1 <= limit <= 1000:
         raise ValueError("Batch limit must be between 1 and 1000")
     with session.begin():
         # Serialize sealers in PostgreSQL; the lock is released on commit/rollback.
         session.execute(text("SELECT pg_advisory_xact_lock(721004021)"))
+        selection = select(Registration).where(~exists().where(BatchEntry.registration_id == Registration.id))
+        if registration_id is not None:
+            selection = selection.where(Registration.id == registration_id)
         pending = list(session.scalars(
-            select(Registration)
-            .where(~exists().where(BatchEntry.registration_id == Registration.id))
+            selection
             .order_by(Registration.received_at, Registration.id)
             .limit(limit)
             .with_for_update()

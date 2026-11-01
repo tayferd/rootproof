@@ -61,6 +61,18 @@ def test_empty_batch_not_created(migrated_database) -> None:
     assert connection.scalar(select(func.count()).select_from(MerkleBatch)) == 0
 
 
+def test_targeted_sealing_leaves_other_registrations_pending(migrated_database) -> None:
+    connection, _ = migrated_database
+    add_registrations(connection, 3)
+    with session_for(connection) as session:
+        batch = seal_batch(session, registration_id=UUID(int=2))
+    assert batch.tree_size == 1
+    assert connection.scalars(select(BatchEntry.registration_id)).all() == [UUID(int=2)]
+    with session_for(connection) as session:
+        assert seal_batch(session, registration_id=UUID(int=2)) is None
+    assert connection.scalar(select(func.count()).select_from(MerkleBatch)) == 1
+
+
 @pytest.mark.parametrize("operation", ["batch_update", "batch_delete", "entry_update", "entry_delete", "record_update", "record_delete", "truncate"])
 def test_sealed_data_is_immutable(migrated_database, operation) -> None:
     connection, _ = migrated_database

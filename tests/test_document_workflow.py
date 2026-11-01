@@ -104,3 +104,11 @@ def test_oversized_response_rejected() -> None:
     api = LocalAPI(httpx.MockTransport(lambda request: httpx.Response(200, content=b"x" * 65537, headers={"Content-Type": "application/json"})))
     with pytest.raises(DocumentError, match="exceeds"):
         api.lookup(IDENTIFIER)
+
+
+def test_registration_details_are_explained_before_reading_document(tmp_path) -> None:
+    details = tmp_path / "registration.json"
+    details.write_text(json.dumps(response("a" * 64)), encoding="utf-8")
+    # A mistaken JSON selection must be explained without reading the document.
+    with pytest.raises(DocumentError, match="registration details, not an inclusion receipt"):
+        verify_document(tmp_path / "unopened-document.docx", details)

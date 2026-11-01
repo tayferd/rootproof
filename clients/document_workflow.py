@@ -101,4 +101,15 @@ class LocalAPI:
 def verify_document(path: Path, receipt_path: Path) -> VerificationResult:
     with receipt_path.open("rb") as source:
         content = source.read(MAX_RECEIPT_BYTES + 1)
+    if len(content) <= MAX_RECEIPT_BYTES:
+        try:
+            data = json.loads(content, object_pairs_hook=_unique_object)
+        except (ValueError, UnicodeError, RecursionError):
+            data = None
+        if isinstance(data, dict) and "receipt_version" not in data and {"id", "digest", "status"} <= data.keys():
+            raise DocumentError(
+                "This is registration details, not an inclusion receipt. "
+                "Return to Register a document, refresh the registration after batch processing, "
+                "and choose Save inclusion receipt. Then select that receipt here."
+            )
     return verify_receipt(hash_file(path), content)
