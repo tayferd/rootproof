@@ -11,6 +11,37 @@ M-013 is in progress: a separate RFC 3161 single-authority experiment has passed
 against FreeTSA using synthetic public test data. It is not a production timestamp
 or multi-witness integration. See [the decision and prototype](docs/timestamping-decision.md).
 
+## Local document interface preview
+
+With the API running in a separate terminal, start Document Desk from the
+repository root:
+
+```powershell
+.\.venv\Scripts\python.exe -m clients.desktop
+```
+
+Choose an individual file to hash locally, optionally include its file name, and
+register its fingerprint. The client re-hashes before submission to reject changes
+since the preview. File contents and full local paths are not uploaded. This
+preview connects only to http://127.0.0.1:8000 and does not access database credentials.
+
+Paste an existing registration ID or use the returned ID to refresh its status.
+Save registration details while pending; these are not inclusion proofs. Once the
+operator seals a batch, refresh and save an inclusion receipt. Batch sealing
+remains the separate `python -m app.db.batch` operator command.
+
+The second tab checks a file and saved inclusion receipt offline. It displays
+file and proof matches separately and explicitly says independent timestamp
+evidence is not verified. The separate FreeTSA experiment is not integrated into
+this interface or the receipt; no external timestamp requests occur from the GUI.
+
+This is an individual-file preview, not a folder scanner or a backup service.
+Tkinter must be available in the Python installation (included with standard
+Windows Python installers; Linux may require its distribution's Tk package).
+Selecting, hashing, and registration were tested in the Windows UI. Receipt and
+verification operations have automated workflow coverage; their remaining manual
+UI checks were interrupted and are not represented as complete.
+
 ## Development setup
 
 Install Python **3.12 or newer** and Git. From the repository root, create a virtual

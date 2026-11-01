@@ -30,7 +30,8 @@ abstractions until a demonstrated requirement calls for them.
 | M-011 | Inclusion proof generation and exportable receipts | Done |
 | M-012 | Offline file-and-receipt verification | Done |
 | M-013 | Independent witnessed root commitments | Doing: single-authority protocol experiment passed |
-| M-014–015 | Selected-folder registration tool and customer pilot | Backlog |
+| M-014 | Document collection pilot | Individual-file desktop preview; folder scanning pending |
+| M-015 | Customer pilot evaluation | Backlog |
 
 M-003 is complete: the connection check, Alembic current and upgrade head, and all
 seven tests passed against local PostgreSQL 18.6. The live test was explicitly
@@ -102,6 +103,16 @@ All 230 tests pass, including offline verification of the real signed public
 fixture and rejection of wrong roots, modified signatures, imprints, and nonces.
 
 ## Integrity and completion
+
+An individual-file Document Desk preview is available through
+`python -m clients.desktop` while M-013 remains open. It supports local hashing,
+registration, ID lookup, registration/receipt saving, and offline receipt checks.
+It uses the local API only; source files stay local and database access remains in
+the backend. Batch sealing is still an operator action. Folder scanning and
+integrated external timestamp evidence are not implemented. The full 241-test
+suite passes. Windows selection, hashing, and registration were visually tested;
+receipt saving and offline verification have automated workflow coverage, with
+remaining manual UI checks interrupted by the user.
 
 Use established cryptographic primitives. Canonicalization and tree construction
 must eventually have explicit, versioned rules. Keep credentials out of Git and
