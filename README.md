@@ -11,6 +11,11 @@ M-013 is in progress: a separate RFC 3161 single-authority experiment has passed
 against FreeTSA using synthetic public test data. It is not a production timestamp
 or multi-witness integration. See [the decision and prototype](docs/timestamping-decision.md).
 
+An experimental [portable evidence package](docs/evidence-package.md) now combines
+a receipt and saved FreeTSA response for offline document, inclusion, and authority
+signature verification. Export makes no network requests. It remains a single
+authority experiment, with no quorum or approved timing accuracy policy.
+
 ## Local document interface preview
 
 With the API running in a separate terminal, start Document Desk from the
