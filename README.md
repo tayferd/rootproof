@@ -35,8 +35,8 @@ Save registration details while pending; these are not inclusion proofs. Once th
 operator seals a batch, refresh and save an inclusion receipt. Batch sealing
 remains the separate `python -m app.db.batch` operator command.
 
-The offline checker needs the JSON produced by **Save inclusion receipt**, not
-**Save registration details**. If an unbatched registration needs an individual
+The offline checker accepts the JSON produced by **Save verification receipt** or
+a combined timestamp evidence package, not **Save registration only**. If an unbatched registration needs an individual
 receipt, the operator can seal just that ID without touching other pending records:
 
 ```powershell
@@ -46,10 +46,11 @@ receipt, the operator can seal just that ID without touching other pending recor
 Then refresh the registration and save its inclusion receipt. The desktop explains
 this distinction when registration details are mistakenly selected for verification.
 
-The second tab checks a file and saved inclusion receipt offline. It displays
-file and proof matches separately and explicitly says independent timestamp
-evidence is not verified. The separate FreeTSA experiment is not integrated into
-this interface or the receipt; no external timestamp requests occur from the GUI.
+The second tab checks a file and saved inclusion receipt or combined timestamp
+evidence package offline. Ordinary receipts report unwitnessed. Combined packages
+also verify the FreeTSA signature and display authority time and trust limits.
+See [evidence packages](docs/evidence-package.md). Package acquisition and export
+remain separate tools; no external timestamp requests occur from the GUI.
 
 This is an individual-file preview, not a folder scanner or a backup service.
 Tkinter must be available in the Python installation (included with standard

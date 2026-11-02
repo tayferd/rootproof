@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 from uuid import UUID
 
-from clients.document_workflow import LocalAPI, evidence_filename, fingerprint, verify_document
+from clients.document_workflow import LocalAPI, evidence_display, evidence_filename, fingerprint, verify_saved_evidence
 
 BG = "#f2f5f4"
 INK = "#19322d"
@@ -64,7 +64,7 @@ class DocumentDesk:
         registration = ttk.Frame(self.tabs, padding=20)
         verification = ttk.Frame(self.tabs, padding=20)
         self.tabs.add(registration, text="Register a document")
-        self.tabs.add(verification, text="Check a receipt offline")
+        self.tabs.add(verification, text="Check saved evidence offline")
         registration.columnconfigure(0, weight=1)
         registration.columnconfigure(1, weight=1)
         left = ttk.Frame(registration, padding=(0, 0, 22, 0))
@@ -106,15 +106,15 @@ class DocumentDesk:
         self.receipt_button.pack(anchor="w")
         ttk.Label(right, text="Receipts currently contain an inclusion proof without independent timestamp confirmations. Separate timestamp experiments are not included.", style="Muted.TLabel", wraplength=385).pack(anchor="w", pady=(14, 0))
 
-        ttk.Label(verification, text="Check a file against its saved receipt", style="Heading.TLabel").pack(anchor="w", pady=(0, 12))
+        ttk.Label(verification, text="Check a file against its saved evidence", style="Heading.TLabel").pack(anchor="w", pady=(0, 12))
         ttk.Label(verification, text="This check runs locally. The API and PostgreSQL do not need to be running.", style="Muted.TLabel", wraplength=860).pack(anchor="w", pady=(0, 20))
         self._button(verification, "Choose file to check…", self.choose_verification_file).pack(anchor="w")
         self.verify_file_label = tk.StringVar(value="No file selected")
         ttk.Label(verification, textvariable=self.verify_file_label, wraplength=850).pack(anchor="w", pady=(8, 16))
-        self._button(verification, "Choose receipt JSON…", self.choose_verification_receipt).pack(anchor="w")
+        self._button(verification, "Choose receipt or evidence JSON…", self.choose_verification_receipt).pack(anchor="w")
         self.verify_receipt_label = tk.StringVar(value="No receipt selected")
         ttk.Label(verification, textvariable=self.verify_receipt_label, wraplength=850).pack(anchor="w", pady=(8, 18))
-        self.verify_button = self._button(verification, "Check file and inclusion proof", self.verify, accent=True)
+        self.verify_button = self._button(verification, "Check file and saved evidence", self.verify, accent=True)
         self.verify_button.pack(anchor="w", pady=(0, 20))
         self.verify_heading = tk.StringVar(value="Ready when you are")
         ttk.Label(verification, textvariable=self.verify_heading, font=("Segoe UI", 17, "bold")).pack(anchor="w", pady=(0, 8))
@@ -276,7 +276,7 @@ class DocumentDesk:
             self._reset_verification()
 
     def choose_verification_receipt(self):
-        chosen = filedialog.askopenfilename(parent=self.root, title="Choose a Rootproof inclusion receipt", filetypes=[("JSON receipts", "*.json"), ("All files", "*.*")])
+        chosen = filedialog.askopenfilename(parent=self.root, title="Choose a Rootproof receipt or timestamp evidence package", filetypes=[("Rootproof evidence JSON", "*.json"), ("All files", "*.*")])
         if chosen:
             self.verification_receipt = Path(chosen)
             self.verify_receipt_label.set(chosen)
@@ -284,7 +284,7 @@ class DocumentDesk:
 
     def _reset_verification(self):
         self.verify_heading.set("Ready to check")
-        self.verify_details.set("Select both the original file and its inclusion receipt.")
+        self.verify_details.set("Select the original file and its inclusion receipt or combined timestamp evidence package. Registration-only JSON cannot be checked here.")
         self._buttons()
 
     def verify(self):
@@ -292,20 +292,16 @@ class DocumentDesk:
         if path is not None and receipt is not None:
             self.verify_heading.set("Checking…")
             self.verify_details.set("")
-            self._run("Checking file and receipt locally…", lambda: verify_document(path, receipt), self._verified, self._verification_failed)
+            self._run("Checking file and saved evidence locally…", lambda: verify_saved_evidence(path, receipt), self._verified, self._verification_failed)
 
     def _verification_failed(self, message):
         self.verify_heading.set("Check could not finish")
         self.verify_details.set(message)
 
     def _verified(self, result):
-        self.verify_heading.set("File and proof match · unwitnessed" if result.status == "valid_unwitnessed" else "Verification failed")
-        self.verify_details.set(
-            f"File matches registered digest: {'Yes' if result.file_matches else 'No'}\n"
-            f"Inclusion proof matches receipt root: {'Yes' if result.inclusion_valid else 'No'}\n"
-            "Independent timestamp: not verified\n\n"
-            "This checks consistency with the supplied receipt root. It does not authenticate the root's history."
-        )
+        heading, details = evidence_display(result)
+        self.verify_heading.set(heading)
+        self.verify_details.set(details)
         self.status.set("Offline check complete. No API or database connection was used.")
 
     def close(self):

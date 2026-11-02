@@ -9,6 +9,8 @@ from uuid import UUID
 import httpx
 
 from clients.registrations import _unique_object
+from clients.evidence import MAX_PACKAGE_BYTES, verify_package
+import rfc3161_client as tsp
 from integrity.hashing import hash_file
 from integrity.verification import MAX_RECEIPT_BYTES, VerificationResult, verify_receipt
 
@@ -122,3 +124,42 @@ def verify_document(path: Path, receipt_path: Path) -> VerificationResult:
                 "and choose Save verification receipt. Then select that receipt here."
             )
     return verify_receipt(hash_file(path), content)
+
+
+def verify_saved_evidence(path: Path, evidence_path: Path) -> VerificationResult | dict:
+    """Dispatch by explicit format; invalid packages never fall back to receipts."""
+    with evidence_path.open("rb") as source:
+        content = source.read(MAX_PACKAGE_BYTES + 1)
+    if len(content) > MAX_PACKAGE_BYTES:
+        raise DocumentError("Evidence file exceeds the supported size.")
+    try:
+        data = json.loads(content, object_pairs_hook=_unique_object)
+    except (ValueError, UnicodeError, RecursionError):
+        raise DocumentError("Evidence JSON is malformed or contains duplicate fields.") from None
+    if isinstance(data, dict) and "evidence_version" in data:
+        try:
+            return verify_package(hash_file(path), content)
+        except (ValueError, TypeError, KeyError, AttributeError, tsp.VerificationError):
+            raise DocumentError("External timestamp evidence could not be verified. Check the package and trusted certificates. No timestamp confirmation is established.") from None
+    return verify_document(path, evidence_path)
+
+
+def evidence_display(result: VerificationResult | dict) -> tuple[str, str]:
+    if isinstance(result, VerificationResult):
+        heading = "File and proof match · unwitnessed" if result.status == "valid_unwitnessed" else "Verification failed"
+        return heading, (
+            f"File matches registered digest: {'Yes' if result.file_matches else 'No'}\n"
+            f"Inclusion proof matches receipt root: {'Yes' if result.inclusion_valid else 'No'}\n"
+            "Independent timestamp: not verified\n\n"
+            "This checks consistency with the supplied receipt root. It does not authenticate the root's history."
+        )
+    record, authority = result["registration"], result["timestamp"]
+    heading = "File, proof and authority signature match" if result["status"] == "file_and_single_authority_signature_valid" else "Verification failed · file or proof mismatch"
+    return heading, (
+        f"File matches registered digest: {'Yes' if record['file_matches'] else 'No'}\n"
+        f"Inclusion proof matches receipt root: {'Yes' if record['inclusion_valid'] else 'No'}\n"
+        f"FreeTSA signature: verified under pinned certificates\n"
+        f"Authority time: {authority['provider_time']}\n\n"
+        "Single authority only; witness quorum not met. Revocation not checked; timing accuracy policy not approved.\n"
+        "Authority time applies to the batch commitment, not earlier server receipt times."
+    )

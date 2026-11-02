@@ -8,6 +8,13 @@ be present, so share the package deliberately.
 Export and verification are offline. Neither command submits a timestamp request.
 Export verifies the saved response before writing and refuses to overwrite a file.
 
+Document Desk also accepts these packages in **Check saved evidence offline**.
+Choose a document and the exported package JSON, then select **Check file and
+saved evidence**. The result displays the verified authority time and the explicit
+single-authority limitations. Ordinary inclusion receipts remain supported and
+continue to report unwitnessed. Invalid packages do not fall back to a weaker
+receipt-only check. The desktop does not yet acquire or export timestamp packages.
+
 ```powershell
 .\.venv\Scripts\python.exe -m clients.evidence export tests/fixtures/timestamp-demo-receipt.json tests/fixtures/freetsa-public-demo .local/public-demo-evidence.json
 .\.venv\Scripts\python.exe -m clients.evidence verify tests/fixtures/timestamp-demo.txt .local/public-demo-evidence.json
@@ -35,5 +42,4 @@ This first end-to-end package anchors an existing batch directly. A future
 aggregation tree can commit to many batch commitments, with a second inclusion
 path and a new versioned package. Append-only history claims would additionally
 require consistency verification and a mechanism to detect conflicting histories.
-No second tree, blockchain integration, scheduler, or desktop integration is
-implemented by this package.
+No second tree, blockchain integration, or scheduler is implemented by this package.
