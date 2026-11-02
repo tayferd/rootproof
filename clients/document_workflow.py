@@ -27,6 +27,15 @@ def fingerprint(path: Path) -> Fingerprint:
     return Fingerprint(path, hash_file(path))
 
 
+def evidence_filename(identifier: UUID, document_name: str | None, *, receipt: bool) -> str:
+    """Suggest a portable filename; never use metadata as a destination path."""
+    name = re.split(r"[/\\]", document_name or "document")[-1]
+    stem = name.rsplit(".", 1)[0] if "." in name else name
+    stem = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "-", stem).strip(" .")[:80] or "document"
+    kind = "verification-receipt" if receipt else "registration-only"
+    return f"Rootproof-{stem}-{kind}-{str(identifier)[:8]}.json"
+
+
 class LocalAPI:
     """This pilot deliberately connects only to the local development API."""
 
@@ -110,6 +119,6 @@ def verify_document(path: Path, receipt_path: Path) -> VerificationResult:
             raise DocumentError(
                 "This is registration details, not an inclusion receipt. "
                 "Return to Register a document, refresh the registration after batch processing, "
-                "and choose Save inclusion receipt. Then select that receipt here."
+                "and choose Save verification receipt. Then select that receipt here."
             )
     return verify_receipt(hash_file(path), content)

@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 from uuid import UUID
 
-from clients.document_workflow import LocalAPI, fingerprint, verify_document
+from clients.document_workflow import LocalAPI, evidence_filename, fingerprint, verify_document
 
 BG = "#f2f5f4"
 INK = "#19322d"
@@ -91,6 +91,7 @@ class DocumentDesk:
         ttk.Label(right, text="Registration ID", style="Muted.TLabel").pack(anchor="w")
         self.identifier = tk.StringVar()
         self.id_entry = ttk.Entry(right, textvariable=self.identifier, font=("Consolas", 10), width=38)
+        self.id_entry.bind("<KeyRelease>", lambda _: self._buttons())
         self.id_entry.pack(fill="x", pady=(6, 10))
         row = ttk.Frame(right)
         row.pack(anchor="w", pady=(0, 14))
@@ -100,8 +101,9 @@ class DocumentDesk:
         ttk.Label(right, textvariable=self.registration_state, wraplength=385, font=("Segoe UI", 12, "bold")).pack(anchor="w", pady=(0, 12))
         self.registration_info = tk.StringVar(value="A saved registration starts pending. An inclusion receipt becomes available after batch processing.")
         ttk.Label(right, textvariable=self.registration_info, style="Muted.TLabel", wraplength=385).pack(anchor="w", pady=(0, 16))
-        self._button(right, "Save registration details…", self.save_registration).pack(anchor="w", pady=(0, 8))
-        self._button(right, "Save inclusion receipt…", self.save_receipt, accent=True).pack(anchor="w")
+        self._button(right, "Save registration only (not for checking)…", self.save_registration).pack(anchor="w", pady=(0, 8))
+        self.receipt_button = self._button(right, "Save verification receipt…", self.save_receipt, accent=True)
+        self.receipt_button.pack(anchor="w")
         ttk.Label(right, text="Receipts currently contain an inclusion proof without independent timestamp confirmations. Separate timestamp experiments are not included.", style="Muted.TLabel", wraplength=385).pack(anchor="w", pady=(14, 0))
 
         ttk.Label(verification, text="Check a file against its saved receipt", style="Heading.TLabel").pack(anchor="w", pady=(0, 12))
@@ -131,6 +133,9 @@ class DocumentDesk:
             self.register_button.configure(state="disabled")
         if self.verification_file is None or self.verification_receipt is None:
             self.verify_button.configure(state="disabled")
+        record = self.current_registration
+        if not record or record["id"] != self.identifier.get().strip() or record["status"] != "sealed_pending_witnesses":
+            self.receipt_button.configure(state="disabled")
 
     def _run(self, message, work, success, failure=None):
         if self.busy:
@@ -198,9 +203,10 @@ class DocumentDesk:
         if sealed:
             details += f"\nBatch: {record.get('batch_id')}\nPosition: {record.get('batch_position')}"
         else:
-            details += "\nSave the registration details now. Refresh after the operator seals a batch."
+            details += "\nVerification receipt not ready. The operator must process this registration into a batch; then click Refresh registration. Registration details cannot be used in the offline checker."
         self.registration_info.set(details)
         self.status.set("Registration loaded. Document contents have stayed local.")
+        self._buttons()
 
     def _id(self):
         try:
@@ -225,7 +231,7 @@ class DocumentDesk:
         identifier = self._id()
         if identifier is None:
             return
-        destination = filedialog.asksaveasfilename(parent=self.root, title="Save registration details (not an inclusion proof)", initialfile=f"registration-{identifier}.json", defaultextension=".json", filetypes=[("JSON", "*.json")])
+        destination = filedialog.asksaveasfilename(parent=self.root, title="Save registration only — cannot be used for verification", initialfile=self._suggested_name(identifier, receipt=False), defaultextension=".json", filetypes=[("JSON", "*.json")])
         if not destination:
             return
 
@@ -241,7 +247,7 @@ class DocumentDesk:
         identifier = self._id()
         if identifier is None:
             return
-        destination = filedialog.asksaveasfilename(parent=self.root, title="Save inclusion receipt", initialfile=f"rootproof-{identifier}.json", defaultextension=".json", filetypes=[("JSON", "*.json")])
+        destination = filedialog.asksaveasfilename(parent=self.root, title="Save verification receipt", initialfile=self._suggested_name(identifier, receipt=True), defaultextension=".json", filetypes=[("JSON", "*.json")])
         if not destination:
             return
 
@@ -250,6 +256,17 @@ class DocumentDesk:
             Path(destination).write_bytes(content)
 
         self._run("Downloading inclusion receipt…", save, lambda _: self.status.set("Inclusion receipt saved. Independent timestamp evidence is not included."))
+
+    def _suggested_name(self, identifier, *, receipt):
+        record = self.current_registration
+        name = None
+        if record and record["id"] == str(identifier):
+            metadata = record.get("registration_metadata", {})
+            if isinstance(metadata, dict) and isinstance(metadata.get("document_name"), str):
+                name = metadata["document_name"]
+            if not name and self.selected and self.selected.digest == record["digest"]:
+                name = self.selected.path.name
+        return evidence_filename(identifier, name, receipt=receipt)
 
     def choose_verification_file(self):
         chosen = filedialog.askopenfilename(parent=self.root, title="Choose the file to check")

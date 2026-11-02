@@ -7,10 +7,23 @@ from uuid import UUID
 import httpx
 import pytest
 
-from clients.document_workflow import DocumentError, LocalAPI, fingerprint, verify_document
+from clients.document_workflow import DocumentError, LocalAPI, evidence_filename, fingerprint, verify_document
 
 FIXTURES = Path(__file__).parent / "fixtures"
 IDENTIFIER = UUID("00000000-0000-0000-0000-000000000001")
+
+
+def test_customer_filenames_distinguish_registration_from_receipt():
+    assert evidence_filename(IDENTIFIER, "Topic analysis.docx", receipt=True) == "Rootproof-Topic analysis-verification-receipt-00000000.json"
+    assert "registration-only" in evidence_filename(IDENTIFIER, "Topic analysis.docx", receipt=False)
+
+
+@pytest.mark.parametrize("name", [None, "../Topic.docx", "C:\\private\\Topic.docx", "bad:name?.docx", "...", "x" * 300])
+def test_customer_filename_never_becomes_a_path(name):
+    result = evidence_filename(IDENTIFIER, name, receipt=True)
+    assert not any(char in result for char in '<>:"/\\|?*')
+    assert len(result) < 140
+    assert result.endswith(".json")
 
 
 def response(digest):
